@@ -282,7 +282,7 @@ function update_melee_groups()
 end
 
 function check_hasso()
-	if player.status == 'Engaged' and not (state.Stance.value == 'None' or state.Buff.Hasso or state.Buff.Seigan or main_weapon_is_one_handed() or silent_check_amnesia()) then
+	if not (state.Stance.value == 'None' or state.Buff.Hasso or state.Buff.Seigan) and player.in_combat then
 		
 		local abil_recasts = windower.ffxi.get_ability_recasts()
 		
@@ -303,7 +303,7 @@ function check_hasso()
 end
 
 function check_buff()
-	if state.AutoBuffMode.value ~= 'Off' and player.in_combat and not state.Buff['SJ Restriction'] then
+	if state.AutoBuffMode.value ~= 'Off' and player.in_combat then
 		
 		local abil_recasts = windower.ffxi.get_ability_recasts()
 

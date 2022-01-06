@@ -107,7 +107,7 @@ function job_aftercast(spell, spellMap, eventArgs)
     if not spell.interrupted then
 		if (spell.english == 'Drain II' or spell.english == 'Drain III') and state.DrainSwapWeaponMode.value ~= 'Never' then
 			if player.equipment.main and sets.DrainWeapon and player.equipment.main == sets.DrainWeapon.main and player.equipment.main ~= sets.weapons[state.Weapons.value].main then
-				equip_weaponset(state.Weapons.value)
+				handle_weapons()
 			end
         elseif state.UseCustomTimers.value and (spell.english == 'Sleep' or spell.english == 'Sleepga') then
             send_command('@timers c "'..spell.english..' ['..spell.target.name..']" 60 down spells/00220.png')
@@ -207,7 +207,7 @@ function job_post_midcast(spell, spellMap, eventArgs)
 			equip(sets.element[spell.element])
 		end
 	elseif spell.skill == 'Dark Magic' then
-		if state.Buff['Nether Void'] and sets.buff['Nether Void'] and (spell.english:startswith('Absorb') or spell.english:startswith('Drain')) then
+		if state.Buff['Nether Void'] and sets.buff['Nether Void'] and spell.english:startswith('Absorb') then
 			equip(sets.buff['Nether Void'])
 		end
 		if state.Buff['Dark Seal'] and sets.buff['Dark Seal'] and (spell.english:startswith('Absorb') or spell.english == 'Dread Spikes' or spell.english == 'Drain II' or spell.english == 'Drain III') then
@@ -256,7 +256,7 @@ function update_melee_groups()
 end
 
 function check_hasso()
-if player.sub_job == 'SAM' and player.status == 'Engaged' and not (state.Stance.value == 'None' or state.Buff.Hasso or state.Buff.Seigan or state.Buff['SJ Restriction'] or main_weapon_is_one_handed() or silent_check_amnesia()) then
+	if not (state.Stance.value == 'None' or state.Buff.Hasso or state.Buff.Seigan) and player.sub_job == 'SAM' and player.in_combat then
 		
 		local abil_recasts = windower.ffxi.get_ability_recasts()
 		

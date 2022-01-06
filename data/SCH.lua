@@ -46,7 +46,7 @@
 --[[
         Custom commands:
 
-        Shorthand versions for each stratagem type that uses the version appropriate for
+        Shorthand versions for each strategem type that uses the version appropriate for
         the current Arts.
 
                                         Light Arts              Dark Arts
@@ -85,7 +85,7 @@ function job_setup()
     state.Buff['Sublimation: Activated'] = buffactive['Sublimation: Activated'] or false
 	state.Buff['Enlightenment'] = buffactive['Enlightenment'] or false
 	
-    update_active_stratagems()
+    update_active_strategems()
 	
 	state.RecoverMode = M('35%', '60%', 'Always', 'Never')
 	
@@ -168,13 +168,7 @@ function job_post_midcast(spell, spellMap, eventArgs)
 		equip(sets.buff['Dark Arts'])
     elseif spell.skill == 'Elemental Magic' and spell.english ~= 'Impact' then
 		if state.MagicBurstMode.value ~= 'Off' then
-			if spell.english:endswith('Helix') or spell.english:endswith('Helix II') then
-				if state.CastingMode.value:contains('Resistant') and sets.ResistantHelixBurst then
-					equip(sets.ResistantHelixBurst)
-				elseif sets.HelixBurst then
-					equip(sets.HelixBurst)
-				end
-			elseif state.CastingMode.value:contains('Resistant') and sets.ResistantMagicBurst then
+			if state.CastingMode.value:contains('Resistant') and sets.ResistantMagicBurst then
 				equip(sets.ResistantMagicBurst)
 			else
 				equip(sets.MagicBurst)
@@ -315,7 +309,7 @@ end
 
 -- Called by the 'update' self-command.
 function job_update(cmdParams, eventArgs)
-    update_active_stratagems()
+    update_active_strategems()
     update_sublimation()
 end
 
@@ -333,13 +327,13 @@ end
 -- Called for direct player commands.
 function job_self_command(commandArgs, eventArgs)
     if commandArgs[1]:lower() == 'scholar' then
-        handle_stratagems(commandArgs)
+        handle_strategems(commandArgs)
         eventArgs.handled = true
     elseif commandArgs[1]:lower() == 'elemental' then
         handle_elemental(commandArgs)
         eventArgs.handled = true
 	elseif commandArgs[1]:lower() == 'showcharge' then
-		add_to_chat(204, '~~~Current Stratagem Charges Available: ['..get_current_stratagem_count()..']~~~')
+		add_to_chat(204, '~~~Current Stratagem Charges Available: ['..get_current_strategem_count()..']~~~')
 	end
 end
 
@@ -347,8 +341,8 @@ end
 -- Utility functions specific to this job.
 -------------------------------------------------------------------------------------------------------------------
 
--- Reset the state vars tracking stratagems.
-function update_active_stratagems()
+-- Reset the state vars tracking strategems.
+function update_active_strategems()
 	state.Buff['Accession'] = buffactive['Accession'] or false
     state.Buff['Ebullience'] = buffactive['Ebullience'] or false
     state.Buff['Rapture'] = buffactive['Rapture'] or false
@@ -507,7 +501,7 @@ function handle_elemental(cmdParams)
 			add_to_chat(123,'Abort: You are not targeting a monster.')
 		elseif buffactive.silence or buffactive.mute or buffactive.paralysis then
 			add_to_chat(123,'You are silenced, muted, or paralyzed, cancelling skillchain.')
-		elseif (get_current_stratagem_count() + immactive) < 2 then
+		elseif (get_current_strategem_count() + immactive) < 2 then
 			add_to_chat(123,'Abort: You have less than two stratagems available.')
 		elseif not (state.Buff['Dark Arts']  or state.Buff['Addendum: Black']) then
 			add_to_chat(123,'Can\'t use elemental skillchain commands without Dark Arts - Activating.')
@@ -606,7 +600,7 @@ function handle_elemental(cmdParams)
 			add_to_chat(123,'Abort: You are not targeting a monster.')
 		elseif buffactive.silence or buffactive.mute or buffactive.paralysis then
 			add_to_chat(123,'You are silenced, muted, or paralyzed, cancelling skillchain.')
-		elseif (get_current_stratagem_count() + immactive) < 2 then
+		elseif (get_current_strategem_count() + immactive) < 2 then
 			add_to_chat(123,'Abort: You have less than two stratagems available.')
 		elseif not (state.Buff['Dark Arts']  or state.Buff['Addendum: Black']) then
 			add_to_chat(123,'Can\'t use elemental skillchain commands without Dark Arts - Activating.')
@@ -672,7 +666,7 @@ function handle_elemental(cmdParams)
 			add_to_chat(123,'Abort: You are not targeting a monster.')
 		elseif buffactive.silence or buffactive.mute or buffactive.paralysis then
 			add_to_chat(123,'You are silenced, muted, or paralyzed, cancelling skillchain.')
-		elseif (get_current_stratagem_count() + immactive) < 3 then
+		elseif (get_current_strategem_count() + immactive) < 3 then
 			add_to_chat(123,'Abort: You have less than three stratagems available.')
 		elseif not (state.Buff['Dark Arts']  or state.Buff['Addendum: Black']) then
 			add_to_chat(123,'Can\'t use elemental skillchain commands without Dark Arts - Activating.')
@@ -700,7 +694,7 @@ function handle_elemental(cmdParams)
 			add_to_chat(123,'Abort: You are not targeting a monster.')
 		elseif buffactive.silence or buffactive.mute or buffactive.paralysis then
 			add_to_chat(123,'You are silenced, muted, or paralyzed, cancelling skillchain.')
-		elseif (get_current_stratagem_count() + immactive) < 4 then
+		elseif (get_current_strategem_count() + immactive) < 4 then
 			add_to_chat(123,'Abort: You have less than four stratagems available.')
 		elseif not (state.Buff['Dark Arts']  or state.Buff['Addendum: Black']) then
 			add_to_chat(123,'Can\'t use elemental skillchain commands without Dark Arts - Activating.')
@@ -724,7 +718,7 @@ function handle_elemental(cmdParams)
 			add_to_chat(123,'Abort: You are not targeting a monster.')
 		elseif buffactive.silence or buffactive.mute or buffactive.paralysis then
 			add_to_chat(123,'You are silenced, muted, or paralyzed, cancelling skillchain.')
-		elseif get_current_stratagem_count() < 5 then
+		elseif get_current_strategem_count() < 5 then
 			add_to_chat(123,'Abort: You have less than five stratagems available.')
 		elseif not (state.Buff['Dark Arts']  or state.Buff['Addendum: Black']) then
 			add_to_chat(123,'Can\'t use elemental skillchain commands without Dark Arts - Activating.')
@@ -756,7 +750,7 @@ function handle_elemental(cmdParams)
 			add_to_chat(123,'Abort: You don\'t have enough TP for this skillchain.')
 		elseif buffactive.silence or buffactive.mute or buffactive.paralysis then
 			add_to_chat(123,'You are silenced, muted, or paralyzed, cancelling skillchain.')
-		elseif (get_current_stratagem_count() + immactive) < 1 then
+		elseif (get_current_strategem_count() + immactive) < 1 then
 			add_to_chat(123,'Abort: You have less than one stratagems available.')
 		elseif not (state.Buff['Dark Arts']  or state.Buff['Addendum: Black']) then
 			add_to_chat(123,'Can\'t use elemental skillchain commands without Dark Arts - Activating.')
@@ -874,19 +868,19 @@ function handle_elemental(cmdParams)
     end
 end
 
--- General handling of stratagems in an Arts-agnostic way.
--- Format: gs c scholar <stratagem>
-function handle_stratagems(cmdParams)
+-- General handling of strategems in an Arts-agnostic way.
+-- Format: gs c scholar <strategem>
+function handle_strategems(cmdParams)
     -- cmdParams[1] == 'scholar'
-    -- cmdParams[2] == stratagem to use
+    -- cmdParams[2] == strategem to use
 
     if not cmdParams[2] then
-        add_to_chat(123,'Error: No stratagem command given.')
+        add_to_chat(123,'Error: No strategem command given.')
         return
     end
-    local stratagem = cmdParams[2]:lower()
+    local strategem = cmdParams[2]:lower()
 
-    if stratagem == 'light' then
+    if strategem == 'light' then
         if state.Buff['Light Arts'] then
             windower.chat.input('/ja "Addendum: White" <me>')
         elseif state.Buff['Addendum: White'] then
@@ -894,7 +888,7 @@ function handle_stratagems(cmdParams)
         else
             windower.chat.input('/ja "Light Arts" <me>')
         end
-    elseif stratagem == 'dark' then
+    elseif strategem == 'dark' then
         if state.Buff['Dark Arts'] then
             windower.chat.input('/ja "Addendum: Black" <me>')
         elseif state.Buff['Addendum: Black'] then
@@ -903,55 +897,55 @@ function handle_stratagems(cmdParams)
             windower.chat.input('/ja "Dark Arts" <me>')
         end
     elseif state.Buff['Light Arts'] or state.Buff['Addendum: White'] then
-        if stratagem == 'cost' then
+        if strategem == 'cost' then
             windower.chat.input('/ja "Penury" <me>')
-        elseif stratagem == 'speed' then
+        elseif strategem == 'speed' then
             windower.chat.input('/ja "Celerity" <me>')
-        elseif stratagem == 'aoe' then
+        elseif strategem == 'aoe' then
             windower.chat.input('/ja "Accession" <me>')
-        elseif stratagem == 'power' then
+        elseif strategem == 'power' then
             windower.chat.input('/ja "Rapture" <me>')
-        elseif stratagem == 'duration' then
+        elseif strategem == 'duration' then
             windower.chat.input('/ja "Perpetuance" <me>')
-        elseif stratagem == 'accuracy' then
+        elseif strategem == 'accuracy' then
             windower.chat.input('/ja "Altruism" <me>')
-        elseif stratagem == 'enmity' then
+        elseif strategem == 'enmity' then
             windower.chat.input('/ja "Tranquility" <me>')
-        elseif stratagem == 'skillchain' then
-            add_to_chat(122,'Error: Light Arts does not have a skillchain stratagem.')
-        elseif stratagem == 'addendum' then
+        elseif strategem == 'skillchain' then
+            add_to_chat(122,'Error: Light Arts does not have a skillchain strategem.')
+        elseif strategem == 'addendum' then
             windower.chat.input('/ja "Addendum: White" <me>')
         else
-            add_to_chat(123,'Error: Unknown stratagem ['..stratagem..']')
+            add_to_chat(123,'Error: Unknown strategem ['..strategem..']')
         end
     elseif state.Buff['Dark Arts']  or state.Buff['Addendum: Black'] then
-        if stratagem == 'cost' then
+        if strategem == 'cost' then
             windower.chat.input('/ja "Parsimony" <me>')
-        elseif stratagem == 'speed' then
+        elseif strategem == 'speed' then
             windower.chat.input('/ja "Alacrity" <me>')
-        elseif stratagem == 'aoe' then
+        elseif strategem == 'aoe' then
             windower.chat.input('/ja "Manifestation" <me>')
-        elseif stratagem == 'power' then
+        elseif strategem == 'power' then
             windower.chat.input('/ja "Ebullience" <me>')
-        elseif stratagem == 'duration' then
-            add_to_chat(122,'Error: Dark Arts does not have a duration stratagem.')
-        elseif stratagem == 'accuracy' then
+        elseif strategem == 'duration' then
+            add_to_chat(122,'Error: Dark Arts does not have a duration strategem.')
+        elseif strategem == 'accuracy' then
             windower.chat.input('/ja "Focalization" <me>')
-        elseif stratagem == 'enmity' then
+        elseif strategem == 'enmity' then
             windower.chat.input('/ja "Equanimity" <me>')
-        elseif stratagem == 'skillchain' then
+        elseif strategem == 'skillchain' then
             windower.chat.input('/ja "Immanence" <me>')
-        elseif stratagem == 'addendum' then
+        elseif strategem == 'addendum' then
             windower.chat.input('/ja "Addendum: Black" <me>')
         else
-            add_to_chat(123,'Error: Unknown stratagem ['..stratagem..']')
+            add_to_chat(123,'Error: Unknown strategem ['..strategem..']')
         end
     else
         add_to_chat(123,'No arts has been activated yet.')
     end
 end
 
--- Gets the current number of available stratagems based on the recast remaining
+-- Gets the current number of available strategems based on the recast remaining
 -- and the level of the sch.
 function job_tick()
 	if check_arts() then return true end

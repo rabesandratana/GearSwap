@@ -55,7 +55,7 @@ function job_setup()
     state.Buff['Afflatus Misery'] = buffactive['Afflatus Misery'] or false
 	state.Buff['Divine Caress'] = buffactive['Divine Caress'] or false
 	
-	state.AutoCaress = M(true, 'Auto Caress Mode')
+	state.AutoCaress = M(false, 'Auto Caress Mode')
 	state.Gambanteinn = M(false, 'Gambanteinn Cursna Mode')
 	state.BlockLowDevotion = M(true, 'Block Low Devotion')
 	
@@ -182,7 +182,15 @@ end
 function job_precast(spell, spellMap, eventArgs)
 
 	if spell.action_type == 'Magic' then
-		if spellMap == 'StatusRemoval' and not (spell.english == "Erase" or spell.english == "Esuna" or spell.english == "Sacrifice") then
+		if spellMap == 'Cure' or spellMap == 'Curaga' then
+			gear.default.obi_waist = gear.obi_cure_waist
+			gear.default.obi_back = gear.obi_cure_back
+		elseif spell.english == 'Holy II' then
+			gear.default.obi_waist = gear.obi_high_nuke_waist
+		elseif spell.english == 'Holy' or (spell.skill == 'Elemental Magic' and default_spell_map ~= 'ElementalEnfeeble') then
+			gear.default.obi_waist = gear.obi_nuke_waist
+			gear.default.obi_back = gear.obi_nuke_back
+		elseif spellMap == 'StatusRemoval' and not (spell.english == "Erase" or spell.english == "Esuna" or spell.english == "Sacrifice") then
 			local abil_recasts = windower.ffxi.get_ability_recasts()
 			if abil_recasts[32] < latency and not silent_check_amnesia() and state.AutoCaress.value then
 				eventArgs.cancel = true
@@ -199,9 +207,9 @@ function job_precast(spell, spellMap, eventArgs)
 		end
 	end
 		
-	if state.CastingMode.value == 'Proc' then
-		classes.CustomClass = 'Proc'
-	end
+        if state.CastingMode.value == 'Proc' then
+            classes.CustomClass = 'Proc'
+        end
 end
 
 function job_post_precast(spell, spellMap, eventArgs)
@@ -397,7 +405,7 @@ function check_arts()
 			tickdelay = os.clock() + 1
 			return true
 
-		elseif player.sub_job == 'SCH' and not (state.Buff['SJ Restriction'] or arts_active()) and abil_recasts[228] < latency then
+		elseif player.sub_job == 'SCH' and not arts_active() and abil_recasts[228] < latency then
 			send_command('@input /ja "Light Arts" <me>')
 			tickdelay = os.clock() + 1
 			return true
@@ -554,15 +562,17 @@ buff_spell_lists = {
 	},
 	Default = {
 		{Name='Reraise IV',		Buff='Reraise',		SpellID=848,	Reapply=false},
-		{Name='Shellra V',		Buff='Shell',		SpellID=134,	Reapply=false},
-		{Name='Protectra V',	Buff='Protect',		SpellID=129,	Reapply=false},
-		{Name='Auspice',		Buff='Auspice',		SpellID=96,		Reapply=false},
 		{Name='Haste',			Buff='Haste',		SpellID=57,		Reapply=false},
 		{Name='Aquaveil',		Buff='Aquaveil',	SpellID=55,		Reapply=false},
-		{Name='Aurorastorm',	Buff='Aurorastorm',	SpellID=119,	Reapply=false},
 		{Name='Stoneskin',		Buff='Stoneskin',	SpellID=54,		Reapply=false},
 		{Name='Blink',			Buff='Blink',		SpellID=53,		Reapply=false},
+		{Name='Regen IV',		Buff='Regen',		SpellID=477,	Reapply=false},
 		{Name='Phalanx',		Buff='Phalanx',		SpellID=106,	Reapply=false},
+		{Name='Boost-MND',		Buff='MND Boost',	SpellID=484,	Reapply=false},
+		{Name='Shellra V',		Buff='Shell',		SpellID=134,	Reapply=false},
+		{Name='Protectra V',	Buff='Protect',		SpellID=129,	Reapply=false},
+		{Name='Barthundra',		Buff='Barthunder',	SpellID=70,		Reapply=false},
+		{Name='Barparalyzra',	Buff='Barparalyze',	SpellID=88,		Reapply=false},
 	},
 	Melee = {
 		{Name='Reraise IV',		Buff='Reraise',		SpellID=848,	Reapply=false},

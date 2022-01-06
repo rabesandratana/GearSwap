@@ -102,8 +102,6 @@ function job_precast(spell, spellMap, eventArgs)
 			windower.chat.input:schedule(1,'/ws "'..spell.english..'" '..spell.target.raw..'')
 			tickdelay = os.clock() + 1.25
 			return
-		elseif state.Buff['SJ Restriction'] then
-			return
 		elseif player.sub_job == 'SAM' and player.tp > 1850 and abil_recasts[140] < latency then
 			eventArgs.cancel = true
 			windower.chat.input('/ja "Sekkanoki" <me>')
@@ -255,7 +253,7 @@ function update_melee_groups()
 end
 
 function check_hasso()
-	if player.sub_job == 'SAM' and player.status == 'Engaged' and not (state.Stance.value == 'None' or state.Buff.Hasso or state.Buff.Seigan or state.Buff['SJ Restriction'] or main_weapon_is_one_handed() or silent_check_amnesia()) then
+	if not (state.Stance.value == 'None' or state.Buff.Hasso or state.Buff.Seigan) and player.sub_job == 'SAM' and player.in_combat then
 		
 		local abil_recasts = windower.ffxi.get_ability_recasts()
 		

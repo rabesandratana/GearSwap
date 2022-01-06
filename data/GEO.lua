@@ -63,9 +63,11 @@ function job_setup()
 
 	autows = 'Realmrazer'
 	autofood = 'Miso Ramen'
-	autoindi = 'Torpor'
-	autoentrust = 'Fury'
-	autoentrustee = '<p1>'
+	--autoindi = 'Torpor'
+	autoindi = 'Fury'
+	--autoentrust = 'Fury'
+	autoentrust = 'Haste'
+	autoentrustee = '<p3>'
 	autogeo = 'Frailty'
 	last_indi = nil
 	last_geo = nil
@@ -497,18 +499,16 @@ function handle_elemental(cmdParams)
 		end
 		add_to_chat(123,'Abort: All '..data.elements.nuke_of[state.ElementalMode.value]..' nukes on cooldown or or not enough MP.')
 
-	elseif command:startswith('tier') then
+	elseif command:contains('tier') then
 		local spell_recasts = windower.ffxi.get_spell_recasts()
 		local tierlist = {['tier1']='',['tier2']=' II',['tier3']=' III',['tier4']=' IV',['tier5']=' V',['tier6']=' VI'}
 
 		windower.chat.input('/ma "'..data.elements.nuke_of[state.ElementalMode.value]..tierlist[command]..'" '..target..'')
 
-	elseif command:startswith('ara') then
+	elseif command:contains('ara') then
 		local spell_recasts = windower.ffxi.get_spell_recasts()
-		local tierkey = {'ara3','ara2','ara1'}
-		local tierlist = {['ara3']='ra III',['ara2']='ra II',['ara1']='ra'}
-		
-		
+		local tierkey = {'ara3','ara2','ara'}
+		local tierlist = {['ara3']='ra III',['ara2']='ra II',['ara']='ra'}
 		if command == 'ara' then
 			for i in ipairs(tierkey) do
 				if spell_recasts[get_spell_table_by_name(data.elements.nukera_of[state.ElementalMode.value]..''..tierlist[tierkey[i]]..'').id] < spell_latency and actual_cost(get_spell_table_by_name(data.elements.nukera_of[state.ElementalMode.value]..''..tierlist[tierkey[i]]..'')) < player.mp then

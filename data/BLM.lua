@@ -66,7 +66,7 @@ function job_setup()
 	state.AutoManawell = M(true, 'Auto Manawell Mode')
 	state.RecoverMode = M('35%', '60%', 'Always', 'Never')
 
-	autows = 'Myrkr'
+	autows = 'Vidohunir'
 	autofood = 'Pear Crepe'
 	
 	init_job_states({"Capacity","AutoRuneMode","AutoTrustMode","AutoNukeMode","AutoManawell","AutoWSMode","AutoShadowMode","AutoFoodMode","AutoStunMode","AutoDefenseMode"},{"AutoBuffMode","Weapons","OffenseMode","WeaponskillMode","IdleMode","Passive","RuneElement","RecoverMode","ElementalMode","CastingMode","TreasureMode",})
@@ -112,15 +112,15 @@ function job_precast(spell, spellMap, eventArgs)
 				gear.default.obi_waist = gear.obi_high_nuke_waist
 			end
 		end
-
-        if state.DeathMode.value ~= 'Off' then
-            classes.CustomClass = 'Death'		
-        elseif state.CastingMode.value == 'Proc' then
+		
+        if state.CastingMode.value == 'Proc' then
             classes.CustomClass = 'Proc'
         elseif state.CastingMode.value == 'OccultAcumen' then
             classes.CustomClass = 'OccultAcumen'
         end
-
+        if state.DeathMode.value ~= 'Off' then
+            classes.CustomClass = 'Death'
+        end
 	end
 end
 
@@ -137,6 +137,10 @@ function job_post_precast(spell, spellMap, eventArgs)
 				equip(sets.MaxTP[spell.english] or sets.MaxTP)
 			end
 		end
+	end
+	
+	if state.Buff['Mana Wall'] and (state.IdleMode.value:contains('DT') or state.DefenseMode.value ~= 'None') then
+		equip(sets.buff['Mana Wall'])
 	end
 end
 
@@ -158,7 +162,7 @@ function job_post_midcast(spell, spellMap, eventArgs)
 				equip(sets.precast.FC.Death)
 			end
 
-		elseif is_nuke(spell, spellMap) then
+		elseif is_nuke(spell, spellMap) and spell.english ~= 'Impact' then
 			if state.MagicBurstMode.value ~= 'Off' then
 				if state.CastingMode.value:contains('Resistant') and sets.ResistantMagicBurst then
 					equip(sets.ResistantMagicBurst)
@@ -207,14 +211,15 @@ function job_post_midcast(spell, spellMap, eventArgs)
 				end
 			end
 		end
-
-		if state.Buff['Mana Wall'] and ((state.IdleMode.value:contains('DT') or state.IdleMode.value:contains('Tank')) and (player.in_combat or being_attacked))then
+		
+		if state.Buff['Mana Wall'] and (state.IdleMode.value:contains('DT') or state.DefenseMode.value ~= 'None') then
 			equip(sets.buff['Mana Wall'])
 		end
 	end
 end
 
 function job_aftercast(spell, spellMap, eventArgs)
+    -- Lock feet after using Mana Wall.
     if not spell.interrupted then
         if spell.english == 'Sleep' or spell.english == 'Sleepga' then
             send_command('@timers c "'..spell.english..' ['..spell.target.name..']" 60 down spells/00220.png')
@@ -306,7 +311,7 @@ function job_customize_idle_set(idleSet)
 	if state.DeathMode.value ~= 'Off' then
         idleSet = set_combine(idleSet, sets.idle.Death)
     end
-
+	
     if state.Buff['Mana Wall'] then
 		idleSet = set_combine(idleSet, sets.buff['Mana Wall'])
     end
@@ -322,15 +327,6 @@ function job_customize_melee_set(meleeSet)
     end
 
     return meleeSet
-end
-
-function job_customize_defense_set(defenseSet)
-
-    if state.Buff['Mana Wall'] then
-		defenseSet = set_combine(defenseSet, sets.buff['Mana Wall'])
-    end
-
-    return defenseSet
 end
 
 -- Function to display the current relevant user state when doing an update.
@@ -354,7 +350,7 @@ function job_tick()
 end
 
 function check_arts()
-	if (player.sub_job == 'SCH' and not (state.Buff['SJ Restriction'] or arts_active())) and (buffup ~= '' or (not data.areas.cities:contains(world.area) and ((state.AutoArts.value and player.in_combat) or state.AutoBuffMode.value ~= 'Off'))) then
+	if (player.sub_job == 'SCH' and not arts_active()) and (buffup ~= '' or (not data.areas.cities:contains(world.area) and ((state.AutoArts.value and player.in_combat) or state.AutoBuffMode.value ~= 'Off'))) then
 	
 		local abil_recasts = windower.ffxi.get_ability_recasts()
 

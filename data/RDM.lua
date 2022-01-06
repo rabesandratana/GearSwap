@@ -103,8 +103,12 @@ function job_precast(spell, spellMap, eventArgs)
 				gear.default.obi_back = gear.obi_high_nuke_back
 				gear.default.obi_waist = gear.obi_high_nuke_waist
 			end
+		elseif spell.english == 'Phalanx II' and (spell.target.type == 'SELF' or buffactive.Accession) then
+			windower.chat.input('/ma "Phalanx" <me>')
+			cancel_spell()
+			eventArgs.cancel = true
 		elseif spell.english == 'Phalanx' and (spell.target.type ~= 'SELF') then
-			windower.chat.input('/ma "Phalanx II" '..spell.target.raw)
+			windower.chat.input('/ws "Phalanx II" '..spell.target.raw)
 			cancel_spell()
 			eventArgs.cancel = true
 		end
@@ -204,24 +208,22 @@ function job_post_midcast(spell, spellMap, eventArgs)
 			equip(sets.buff.ComposureOther)
 		end
 
-		if spell.english == 'Phalanx II' and spell.target.type =='SELF' and sets.Self_Phalanx then
-			equip(sets.Self_Phalanx)
+		if can_dual_wield and sets.midcast[spell.english] and sets.midcast[spell.english].DW then
+			equip(sets.midcast[spell.english].DW)
+		elseif can_dual_wield and sets.midcast[spellMap] and sets.midcast[spellMap].DW then
+			equip(sets.midcast[spellMap].DW)
 		elseif sets.midcast[spell.english] then
 			equip(sets.midcast[spell.english])
 		elseif sets.midcast[spellMap] then
 			equip(sets.midcast[spellMap])
 		end
-
-		if can_dual_wield and (state.Weapons.value == 'None' or state.UnlockWeapons.value) then
-			if spell.english == 'Phalanx II' and spell.target.type =='SELF' and sets.Self_Phalanx and sets.Self_Phalanx.DW then
-				equip(sets.Self_Phalanx.DW)
-			elseif sets.midcast[spell.english] and sets.midcast[spell.english].DW then
-				equip(sets.midcast[spell.english].DW)
-			elseif sets.midcast[spellMap] and sets.midcast[spellMap].DW then
-				equip(sets.midcast[spellMap].DW)
-			end
-		end
     end
+	
+	if spell.skill == 'Enfeebling Magic' or spell.skill == 'Dark Magic' or default_spell_map == 'ElementalEnfeeble' or spell.english == 'Impact' then
+		if state.Weapons.value ~= 'None' and not sets.weapons[state.Weapons.value].range and item_available('Regal Gem') then
+			equip({range=empty,ammo="Regal Gem"})
+		end
+	end
 end
 
 function job_aftercast(spell, spellMap, eventArgs)
@@ -307,44 +309,14 @@ function job_customize_melee_set(meleeSet)
 			meleeSet = set_combine(meleeSet, sets.element.enspell[enspell_element])
 		end
 
-		local single_obi_intensity = 0
-		local orpheus_intensity = 0
-		local hachirin_intensity = 0
-
-		if item_available("Orpheus's Sash") then
-			orpheus_intensity = 15
-		end
-
-		if item_available(data.elements.obi_of[enspell_element]) then
-			if enspell_element == world.weather_element then
-				single_obi_intensity = single_obi_intensity + data.weather_bonus_potency[world.weather_intensity]
-			end
-			if enspell_element == world.day_element then
-				single_obi_intensity = single_obi_intensity + 10
-			end
-		end
-		
-		if item_available('Hachirin-no-Obi') then
-			if enspell_element == world.weather_element then
-				hachirin_intensity = hachirin_intensity + data.weather_bonus_potency[world.weather_intensity]
-			elseif enspell_element == data.elements.weak_to[world.weather_element] then
-				hachirin_intensity = hachirin_intensity - data.weather_bonus_potency[world.weather_intensity]
-			end
-			if enspell_element == world.day_element then
-				hachirin_intensity = hachirin_intensity + 10
-			elseif enspell_element == data.elements.weak_to[world.day_element] then
-				hachirin_intensity = hachirin_intensity - 10
-			end
-		end
-	
-		if single_obi_intensity >= hachirin_intensity and single_obi_intensity >= orpheus_intensity and single_obi_intensity >= 5 then
-			meleeSet = set_combine(meleeSet, {waist=data.elements.obi_of[enspell_element]})
-		elseif hachirin_intensity >= orpheus_intensity and hachirin_intensity >= 5 then
+		local hachirin_avail = item_available('Hachirin-no-Obi')
+		if hachirin_avail and enspell_element == world.weather_element and world.weather_intensity == 2 then
 			meleeSet = set_combine(meleeSet, {waist="Hachirin-no-Obi"})
-		elseif orpheus_intensity >= 5 then
+		elseif item_available("Orpheus's Sash") then
 			meleeSet = set_combine(meleeSet, {waist="Orpheus's Sash"})
+		elseif hachirin_avail and enspell_element == world.weather_element or enspell_element == world.day_element then
+			meleeSet = set_combine(meleeSet, {waist="Hachirin-no-Obi"})
 		end
-
 	end
 
     return meleeSet
@@ -518,6 +490,8 @@ end
 function job_tick()
 	if check_arts() then return true end
 	if check_buff() then return true end
+	if check_party_buff() then return true end
+	--if check_enemy_debuffs() then return true end
 	if check_buffup() then return true end
 	return false
 end
@@ -536,8 +510,8 @@ function check_arts()
 			end	
 		end	
 
- 		if player.sub_job == 'SCH' and not (state.Buff['SJ Restriction'] or arts_active()) and abil_recasts[228] < latency then	
-			windower.chat.input('/ja "Light Arts" <me>')	
+ 		if player.sub_job == 'SCH' and not arts_active() and abil_recasts[228] < latency then	
+			send_command('@input /ja "Light Arts" <me>')	
 			tickdelay = os.clock() + 1.1
 			return true	
 		end	
@@ -549,7 +523,49 @@ end
 
 function check_buff()
 	if state.AutoBuffMode.value ~= 'Off' and not data.areas.cities:contains(world.area) then
+	
 		local spell_recasts = windower.ffxi.get_spell_recasts()
+		
+		--if not buffactive[33] and spell_recasts[511] < spell_latency then
+		--	windower.chat.input('/ma "Haste II" <me>')
+		--	tickdelay = os.clock() + 1.1
+		--	return true
+		--end
+		--
+		--if not buffactive[43] and spell_recasts[894] < spell_latency then
+		--	windower.chat.input('/ma "Refresh III" <me>')
+		--	tickdelay = os.clock() + 1.1
+		--	return true
+		--end
+		--
+		--if not buffactive[116] and spell_recasts[106] < spell_latency then
+		--	windower.chat.input('/ma "Phalanx" <me>')
+		--	tickdelay = os.clock() + 1.1
+		--	return true
+		--end
+		--
+		--if not buffactive[38] and spell_recasts[251] < spell_latency then
+		--	windower.chat.input('/ma "Shock Spikes" <me>')
+		--	tickdelay = os.clock() + 1.1
+		--	return true
+		--end
+		--
+		--if state.AutoBuffMode.value = "AutoMelee" then
+		--	if not buffactive[432] and spell_recasts[895] < spell_latency then
+		--		windower.chat.input('/ma "Temper II" <me>')
+		--		tickdelay = os.clock() + 1.1
+		--		return true
+		--	end
+		--	
+		--	if not buffactive[119] and spell_recasts[486] < spell_latency then
+		--		windower.chat.input('/ma "Gain-STR" <me>')
+		--		tickdelay = os.clock() + 1.1
+		--		return true
+		--	end
+		--end
+		
+		--return false
+	
 		for i in pairs(buff_spell_lists[state.AutoBuffMode.Value]) do
 			if not buffactive[buff_spell_lists[state.AutoBuffMode.Value][i].Buff] and (buff_spell_lists[state.AutoBuffMode.Value][i].When == 'Always' or (buff_spell_lists[state.AutoBuffMode.Value][i].When == 'Combat' and (player.in_combat or being_attacked)) or (buff_spell_lists[state.AutoBuffMode.Value][i].When == 'Engaged' and player.status == 'Engaged') or (buff_spell_lists[state.AutoBuffMode.Value][i].When == 'Idle' and player.status == 'Idle') or (buff_spell_lists[state.AutoBuffMode.Value][i].When == 'OutOfCombat' and not (player.in_combat or being_attacked))) and spell_recasts[buff_spell_lists[state.AutoBuffMode.Value][i].SpellID] < spell_latency and silent_can_use(buff_spell_lists[state.AutoBuffMode.Value][i].SpellID) then
 				windower.chat.input('/ma "'..buff_spell_lists[state.AutoBuffMode.Value][i].Name..'" <me>')
@@ -561,6 +577,113 @@ function check_buff()
 		return false
 	end
 end
+
+local partybuff_yoranoran_refresh = 0
+local partybuff_aaev_refresh = 0
+local partybuff_shantotto_refresh = 0
+local partybuff_ayame_haste = 0
+
+local partybuff_clent_haste = 0
+local partybuff_clent_phalanx = 0
+local partybuff_zefri_refresh = 0
+
+function check_party_buff()
+	if state.AutoBuffMode.value ~= 'Off' and player.in_combat then
+	
+		local spell_recasts = windower.ffxi.get_spell_recasts()
+		local party = windower.ffxi.get_party()
+		local key_indices = {'p1', 'p2', 'p3', 'p4', 'p5'}
+
+		for k = 1, 5 do
+			local member = party[key_indices[k]]
+			local currentTime = os.time(os.date('*t'))
+
+			if member then
+			
+				if member.name == 'Yoran-Oran' then
+					if spell_recasts[894] < spell_latency and currentTime - partybuff_yoranoran_refresh > 300 then
+						--print('Casting Refresh2 on Yoran-Oran')
+						windower.chat.input('//Refresh3 Yoran-Oran')
+						tickdelay = os.clock() + 1.1
+						partybuff_yoranoran_refresh = currentTime
+						return true
+					end
+								
+				elseif member.name == 'ArkEV' then
+					if spell_recasts[894] < spell_latency and currentTime - partybuff_aaev_refresh > 300 then
+						--print('Casting Refresh2 on AAEV')
+						windower.chat.input('//Refresh3 ArkEv')
+						tickdelay = os.clock() + 1.1
+						partybuff_aaev_refresh = currentTime
+						return true
+					end
+					
+				elseif member.name == 'Ayame' then
+					if spell_recasts[511] < spell_latency and currentTime - partybuff_ayame_haste > 300 then
+						--print('Casting Haste2 on Ayame')
+						windower.chat.input('//Haste2 Ayame')
+						tickdelay = os.clock() + 1.1
+						partybuff_ayame_haste = currentTime
+						return true
+					end
+				
+				elseif member.name == 'Shantotto' then
+					if spell_recasts[894] < spell_latency and currentTime - partybuff_shantotto_refresh > 300 then
+						--print('Casting Haste2 on Shantotto')
+						windower.chat.input('//Refresh3 Shantotto')
+						tickdelay = os.clock() + 1.1
+						partybuff_shantotto_refresh = currentTime
+						return true
+					end
+				end
+			end
+		end
+	
+	end
+	
+	return false
+end
+
+local enemydebuff_dia = false
+local enemydebuff_inundation = false
+
+function check_enemy_debuffs()
+	if state.AutoBuffMode.value ~= 'Off' and player.in_combat then
+		
+		local spell_recasts = windower.ffxi.get_spell_recasts()
+	
+		if enemydebuff_dia == false then
+			if spell_recasts[25] < spell_latency then
+				--print('Casting Dia3 on Enemy')
+				windower.chat.input('//Dia3')
+				tickdelay = os.clock() + 1.1
+				enemydebuff_dia = true
+				return true
+			end
+		
+		elseif enemydebuff_inundation == false then
+			if spell_recasts[879] < spell_latency then
+				--print('Casting Inundation on Enemy')
+				windower.chat.input('//Inundation')
+				tickdelay = os.clock() + 1.1
+				enemydebuff_inundation = true
+				return true
+			end
+		end
+	end
+
+	return false
+end
+
+windower.register_event(
+    "status change",
+    function(new_status_id, old_status_id)
+		if new_status_id == 1 then
+			enemydebuff_dia = false
+			enemydebuff_inundation = false
+		end
+    end
+)
 
 function check_buffup()
 	if buffup ~= '' then
@@ -614,13 +737,23 @@ buff_spell_lists = {
 	Auto = {--Options for When are: Always, Engaged, Idle, OutOfCombat, Combat
 		{Name='Refresh III',	Buff='Refresh',		SpellID=894,	When='Always'},
 		{Name='Haste II',		Buff='Haste',		SpellID=511,	When='Always'},
+		{Name='Phalanx',		Buff='Phalanx',		SpellID=106,	When='Always'},
+		{Name='Shock Spikes',	Buff='Shock Spikes',SpellID=251,	When='Always'},
+		{Name='Aquaveil',		Buff='Aquaveil',	SpellID=55,		When='Always'},
 		{Name='Aurorastorm',	Buff='Aurorastorm',	SpellID=119,	When='Idle'},
-		{Name='Reraise',		Buff='Reraise',		SpellID=135,	When='Always'},
+		--{Name='Reraise',		Buff='Reraise',		SpellID=135,	When='Always'},
 	},
 	
 	AutoMelee = {
-		{Name='Haste II',		Buff='Haste',		SpellID=511,	When='Engaged'},
-		{Name='Temper II',		Buff='Multi Strikes',SpellID=895,	When='Engaged'},
+		--{Name='Reraise',		Buff='Reraise',		SpellID=135,	When='Combat'},
+		{Name='Refresh III',	Buff='Refresh',		SpellID=894,	When='Combat'},
+		{Name='Haste II',		Buff='Haste',		SpellID=511,	When='Combat'},
+		{Name='Phalanx',		Buff='Phalanx',		SpellID=106,	When='Combat'},
+		{Name='Shock Spikes',	Buff='Shock Spikes',SpellID=251,	When='Combat'},
+		{Name='Aquaveil',		Buff='Aquaveil',	SpellID=55,		When='Combat'},
+		{Name='Temper II',		Buff='Multi Strikes',SpellID=895,	When='Combat'},
+		{Name='Gain-STR',		Buff='STR Boost',	SpellID=486,	When='Combat'},
+		{Name='Enthunder',		Buff='Enthunder',	SpellID=104,	When='Combat'},
 	},
 	
 	Default = {
@@ -681,25 +814,9 @@ buff_spell_lists = {
 		{Name='Phalanx',		Buff='Phalanx',			SpellID=106,	Reapply=false},
 		{Name='Gain-INT',		Buff='INT Boost',		SpellID=490,	Reapply=false},
 		{Name='Temper II',		Buff='Multi Strikes',	SpellID=895,	Reapply=false},
-		{Name='Regen II',		Buff='Regen',			SpellID=110,	Reapply=false},
 		{Name='Enaero',			Buff='Enaero',			SpellID=102,	Reapply=false},
-		{Name='Stoneskin',		Buff='Stoneskin',		SpellID=54,		Reapply=false},
 		{Name='Shell V',		Buff='Shell',			SpellID=52,		Reapply=false},
 		{Name='Protect V',		Buff='Protect',			SpellID=47,		Reapply=false},
-	},
-	
-	Tolba = {
-		{Name='Refresh III',	Buff='Refresh',			SpellID=894,	Reapply=false},
-		{Name='Haste II',		Buff='Haste',			SpellID=511,	Reapply=false},
-		{Name='Phalanx',		Buff='Phalanx',			SpellID=106,	Reapply=false},
-		{Name='Gain-STR',		Buff='STR Boost',		SpellID=486,	Reapply=false},
-		{Name='Temper II',		Buff='Multi Strikes',	SpellID=895,	Reapply=false},
-		{Name='Regen II',		Buff='Regen',			SpellID=110,	Reapply=false},
-		{Name='Enblizzard',		Buff='Enblizzard',		SpellID=104,	Reapply=false},
-		{Name='Stoneskin',		Buff='Stoneskin',		SpellID=54,		Reapply=false},
-		{Name='Shell V',		Buff='Shell',			SpellID=52,		Reapply=false},
-		{Name='Protect V',		Buff='Protect',			SpellID=47,		Reapply=false},
-		{Name='Barwater',		Buff='Barwater',		SpellID=65,		Reapply=false},
 	},
 	
 	HybridCleave = {

@@ -95,7 +95,7 @@ function job_precast(spell, spellMap, eventArgs)
 		return
 	end
 
-	if spell.type == 'WeaponSkill' and state.AutoBuffMode.value ~= 'Off' and not state.Buff['SJ Restriction'] then
+	if spell.type == 'WeaponSkill' and state.AutoBuffMode.value ~= 'Off' then
 		local abil_recasts = windower.ffxi.get_ability_recasts()
 		if player.sub_job == 'SAM' and player.tp > 1850 and abil_recasts[140] < latency then
 			eventArgs.cancel = true
@@ -247,10 +247,10 @@ function job_self_command(commandArgs, eventArgs)
 				windower.chat.input('/ma "Soporific" <t>')
 			elseif spell_recasts[605] < spell_latency then
 				windower.chat.input('/ma "Geist Wall" <t>')
-			elseif spell_recasts[537] < spell_latency then
-				windower.chat.input('/ma "Stinking Gas" <t>')
 			elseif spell_recasts[575] < spell_latency then
 				windower.chat.input('/ma "Jettatura" <t>')
+			elseif spell_recasts[537] < spell_latency then
+				windower.chat.input('/ma "Stinking Gas" <t>')
 			elseif spell_recasts[592] < spell_latency then
 				windower.chat.input('/ma "Blank Gaze" <t>')
 			elseif not check_auto_tank_ws() then
@@ -400,7 +400,7 @@ function update_melee_groups()
 end
 
 function check_hasso()
-if player.sub_job == 'SAM' and player.status == 'Engaged' and not (state.Stance.value == 'None' or state.Buff.Hasso or state.Buff.Seigan or state.Buff['SJ Restriction'] or main_weapon_is_one_handed() or silent_check_amnesia()) then
+	if not (state.Stance.value == 'None' or state.Buff.Hasso or state.Buff.Seigan) and player.sub_job == 'SAM' and player.in_combat then
 		
 		local abil_recasts = windower.ffxi.get_ability_recasts()
 		
@@ -437,8 +437,6 @@ function check_buff()
 				windower.chat.input('/ja "Swordplay" <me>')
 				tickdelay = os.clock() + 1.1
 				return true
-			elseif state.Buff['SJ Restriction'] then
-				return false
 			elseif player.sub_job == 'DRK' and not buffactive['Last Resort'] and abil_recasts[87] < latency then
 				windower.chat.input('/ja "Last Resort" <me>')
 				tickdelay = os.clock() + 1.1

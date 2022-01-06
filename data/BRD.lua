@@ -98,17 +98,7 @@ end
 -- Set eventArgs.handled to true if we don't want any automatic target handling to be done.
 
 function job_filtered_action(spell, eventArgs)
-	if spell.type == 'WeaponSkill' then
-		local available_ws = S(windower.ffxi.get_abilities().weapon_skills)
-		-- WS 112 is Double Thrust, meaning a Spear is equipped.
-		if available_ws:contains(32) then
-            if spell.english == "Rudra's Storm" then
-				windower.chat.input('/ws "Savage Blade" '..spell.target.raw)
-                cancel_spell()
-				eventArgs.cancel = true
-            end
-        end
-	end
+
 end
 
 function job_pretarget(spell, spellMap, eventArgs)
@@ -400,8 +390,114 @@ end
 
 function job_tick()
 	if check_song() then return true end
+	if check_party_song() then return true end
 	if check_buff() then return true end
 	if check_buffup() then return true end
+	return false
+end
+
+local partysong_yoranoran_refresh3 = 0
+local partysong_yoranoran_refresh2 = 0
+local partysong_shantotto_refresh3 = 0
+local partysong_shantotto_refresh2 = 0
+local partysong_korumoru_refresh3 = 0
+local partysong_iroha_refresh3 = 0
+local partysong_korumoru_refresh2 = 0
+local partysong_fithos_haste = 0
+local partysong_fithos_attack = 0
+local partygeo_fithos_fury = 0
+
+function check_party_song()
+	if state.AutoBuffMode.value ~= 'Off' and player.in_combat then
+	
+		local spell_recasts = windower.ffxi.get_spell_recasts()
+		local party = windower.ffxi.get_party()
+		local key_indices = {'p0','p1', 'p2', 'p3', 'p4', 'p5'}
+
+		for k = 0, 5 do
+			local member = party[key_indices[k]]
+			local currentTime = os.time(os.date('*t'))
+
+			if member then
+				if member.name == 'Fithos' then
+					if currentTime - partysong_fithos_haste > 22 then
+						windower.chat.input('//Victorymarch me')
+						tickdelay = os.clock() + 1.1
+						partysong_fithos_haste = currentTime
+						return true
+					end
+					if currentTime - partysong_fithos_attack > 22 then
+						windower.chat.input('//valorminuet5 me')
+						tickdelay = os.clock() + 1.1
+						partysong_fithos_attack = currentTime
+						return true
+					end		
+					if currentTime - partygeo_fithos_fury > 180 then
+						windower.chat.input('//indifury me')
+						tickdelay = os.clock() + 1.1
+						partygeo_fithos_fury = currentTime
+						return true
+					end						
+				elseif member.name == 'Yoran-Oran' then
+					if currentTime - partysong_yoranoran_refresh3 > 140 then
+						windower.chat.input('//magesballad3 YoranOran')
+						tickdelay = os.clock() + 1.1
+						partysong_yoranoran_refresh3 = currentTime
+						return true
+					end
+					--if currentTime - partysong_yoranoran_refresh2 > 140 then
+					--	windower.chat.input('//magesballad2 YoranOran')
+					--	tickdelay = os.clock() + 1.1
+					--	partysong_yoranoran_refresh2 = currentTime
+					--	return true
+					--end
+				--elseif member.name == 'Shantotto' then
+				--	if currentTime - partysong_shantotto_refresh3 > 140 then
+				--		windower.chat.input('//magesballad3 Shantotto')
+				--		tickdelay = os.clock() + 1.1
+				--		partysong_shantotto_refresh3 = currentTime
+				--		return true
+				--	end
+				--	if currentTime - partysong_shantotto_refresh2 > 140 then
+				--		windower.chat.input('//magesballad2 Shantotto')
+				--		tickdelay = os.clock() + 1.1
+				--		partysong_shantotto_refresh2 = currentTime
+				--		return true
+				--	end	
+				elseif member.name == 'Iroha' then
+				--	if currentTime - partysong_korumoru_refresh3 > 140 then
+				--		windower.chat.input('//magesballad3 koru-moru')
+				--		tickdelay = os.clock() + 1.1
+				--		partysong_korumoru_refresh3 = currentTime
+				--		return true
+				--	end
+					if currentTime - partysong_iroha_refresh3 > 140 then
+						windower.chat.input('//magesballad3 Iroha')
+						tickdelay = os.clock() + 1.1
+						partysong_iroha_refresh3 = currentTime
+						return true
+					end		
+				elseif member.name == 'Koru-Moru' then
+				--	if currentTime - partysong_korumoru_refresh3 > 140 then
+				--		windower.chat.input('//magesballad3 koru-moru')
+				--		tickdelay = os.clock() + 1.1
+				--		partysong_korumoru_refresh3 = currentTime
+				--		return true
+				--	end
+					if currentTime - partysong_korumoru_refresh2 > 140 then
+						windower.chat.input('//magesballad2 koru-moru')
+						tickdelay = os.clock() + 1.1
+						partysong_korumoru_refresh2 = currentTime
+						return true
+					end		
+				end
+			end
+		end
+		
+		--return true
+	
+	end
+	
 	return false
 end
 
@@ -477,8 +573,8 @@ end
 buff_spell_lists = {
 	Auto = {--Options for When are: Always, Engaged, Idle, OutOfCombat, Combat
 		{Name='Refresh',			Buff='Refresh',			SpellID=109,	When='Idle'},
-		{Name='Phalanx',			Buff='Phalanx',			SpellID=106,	When='Idle'},
-		{Name='Stoneskin',			Buff='Stoneskin',		SpellID=54,		When='Idle'},
+		{Name='Phalanx',			Buff='Phalanx',			SpellID=106,	When='Always'},
+		{Name='Stoneskin',			Buff='Stoneskin',		SpellID=54,		When='Always'},
 		{Name='Blink',				Buff='Blink',			SpellID=53,		When='Idle'},
 	},
 	Default = {
