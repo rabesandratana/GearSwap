@@ -230,6 +230,7 @@ end
 
 function job_tick()
 	if check_buff() then return true end
+	if check_dyna_proc() then return true end
 	return false
 end
 
@@ -323,4 +324,117 @@ function update_melee_groups()
 				classes.CustomMeleeGroups:append('AM')
 		end
 	end	
+end
+
+function check_dyna_proc(buff_name, eventArgs)
+	if state.AutoBuffMode.value ~= 'Off' and player.in_combat and player.sub_job == 'DNC' then
+		
+		local abil_recasts = windower.ffxi.get_ability_recasts()
+	
+		if player.target.name == 'Kindred Ranger' or player.target.name == 'Kindred Ninja' or player.target.name == 'Kindred Beastmaster' or player.target.name == 'Kindred Monk' or player.target.name == 'Kindred Thief' or
+		   player.target.name == 'Hydra Ranger' or player.target.name == 'Hydra Ninja' or player.target.name == 'Hydra Beastmaster' or player.target.name == 'Hydra Monk' or player.target.name == 'Hydra Thief' or
+		   player.target.name == 'Vanguard Mason' or player.target.name == 'Vanguard Kusa' or player.target.name == 'Vanguard Beasttender' or player.target.name == 'Vanguard Militant' or player.target.name == 'Vanguard Purloiner' or
+		   player.target.name == 'Nightmare Taurus' or
+		   player.target.name == 'Vanguard Salvager' or player.target.name == 'Vanguard Assassin' or player.target.name == 'Vanguard Ogresoother' or player.target.name == 'Vanguard Sentinel' or player.target.name == 'Vanguard Liberator' or
+		   player.target.name == 'Aitvaras' or player.target.name == "Ze'Vho Fallsplitter" then
+		   
+			if abil_recasts[220] < latency then
+				windower.chat.input('/ja "Box Step" <t>')
+				tickdelay = os.clock() + 1.1
+				return true
+			elseif abil_recasts[221] < latency then
+				if player.target.name == 'Kindred Ninja' or player.target.name == 'Kindred Thief' or player.target.name == 'Vanguard Assassin' or player.target.name == 'Vanguard Liberator' or player.target.name == 'Hydra Ninja' or player.target.name == 'Hydra Thief' or player.target.name == 'Vanguard Kusa' or player.target.name == 'Vanguard Purloiner' then
+					windower.chat.input('/ja "Animated Flourish" <t>')
+				else
+					windower.chat.input('/ja "Violent Flourish" <t>')
+				end
+				
+				tickdelay = os.clock() + 1.1
+				return true
+			end
+		elseif player.target.name == 'Kindred Warrior' or player.target.name == 'Kindred Dragoon' or player.target.name == 'Kindred Samurai' or player.target.name == 'Kindred Dark Knight' or player.target.name == 'Kindred Paladin' or
+			   player.target.name == 'Hydra Warrior' or player.target.name == 'Hydra Dragoon' or player.target.name == 'Hydra Samurai' or player.target.name == 'Hydra Dark Knight' or player.target.name == 'Hydra Paladin' or
+			   player.target.name == 'Vanguard Vindicator' or player.target.name == 'Vanguard Drakekeeper' or player.target.name == 'Vanguard Hatamoto' or player.target.name == 'Vanguard Vigilante' or player.target.name == 'Vanguard Defender' or
+			   player.target.name == 'Vanguard Skirmisher' or player.target.name == 'Vanguard Partisan' or player.target.name == 'Vanguard Persecutor' or player.target.name == 'Vanguard Inciter' or player.target.name == 'Vanguard Exemplar' then
+			   
+			if player.tp >= 1000 then
+				if player.target.name == 'Kindred Paladin' or player.target.name == 'Hydra Paladin' or player.target.name == 'Vanguard Defender' or player.target.name == 'Vanguard Exemplar' then
+					windower.chat.input('/ws "Shark Bite" <t>')
+				else
+					windower.chat.input('/ws "Aeolian Edge" <t>')
+				end
+				
+				tickdelay = os.clock() + 1.1
+				return true
+			end
+		end
+	
+		if world.time < 8*60 then
+			if player.target.name == 'Nightmare Leech' or player.target.name == 'Nightmare Worm' or
+			   player.target.name == 'Nightmare Crab' or player.target.name == 'Nightmare Dhalmel' or player.target.name == 'Nightmare Scorpion' then
+			   
+				if player.tp >= 1000 then
+					windower.chat.input('/ws "Aeolian Edge" <t>')
+					tickdelay = os.clock() + 1.1
+					return true
+				end
+			elseif player.target.name == 'Nightmare Bugard' or player.target.name == 'Nightmare Hornet' or 
+				   player.target.name == 'Nightmare Crawler' or player.target.name == 'Nightmare Raven' or player.target.name == 'Nightmare Uragnite' then
+				   
+				if abil_recasts[220] < latency then
+					windower.chat.input('/ja "Box Step" <t>')
+					tickdelay = os.clock() + 1.1
+					return true
+				elseif abil_recasts[221] < latency then
+					windower.chat.input('/ja "Violent Flourish" <t>')
+					tickdelay = os.clock() + 1.1
+					return true
+				end
+			end
+		elseif world.time >= 8*60 and world.time < 16*60 then
+			if player.target.name == 'Nightmare Bugard' or player.target.name == 'Nightmare Hornet' or
+			   player.target.name == 'Nightmare Crawler' or player.target.name == 'Nightmare Raven' or player.target.name == 'Nightmare Uragnite' then
+			   
+				if player.tp >= 1000 then
+					windower.chat.input('/ws "Aeolian Edge" <t>')
+					tickdelay = os.clock() + 1.1
+					return true
+				end
+			elseif player.target.name == 'Nightmare Cluster' or player.target.name == 'Nightmare Makara' or
+				   player.target.name == 'Nightmare Bunny' or player.target.name == 'Nightmare Eft' or player.target.name == 'Nightmare Mandragora' then
+				   
+				if abil_recasts[220] < latency then
+					windower.chat.input('/ja "Box Step" <t>')
+					tickdelay = os.clock() + 1.1
+					return true
+				elseif abil_recasts[221] < latency then
+					windower.chat.input('/ja "Violent Flourish" <t>')
+					tickdelay = os.clock() + 1.1
+					return true
+				end
+			end
+		else
+			if player.target.name == 'Nightmare Cluster' or player.target.name == 'Nightmare Makara' or
+			   player.target.name == 'Nightmare Bunny' or player.target.name == 'Nightmare Eft' or player.target.name == 'Nightmare Mandragora' then
+			   
+				if player.tp >= 1000 then
+					windower.chat.input('/ws "Aeolian Edge" <t>')
+					tickdelay = os.clock() + 1.1
+					return true
+				end
+			elseif player.target.name == 'Nightmare Leech' or player.target.name == 'Nightmare Worm' or
+				   player.target.name == 'Nightmare Crab' or player.target.name == 'Nightmare Dhalmel' or player.target.name == 'Nightmare Scorpion' then
+				   
+				if abil_recasts[220] < latency then
+					windower.chat.input('/ja "Box Step" <t>')
+					tickdelay = os.clock() + 1.1
+					return true
+				elseif abil_recasts[221] < latency then
+					windower.chat.input('/ja "Violent Flourish" <t>')
+					tickdelay = os.clock() + 1.1
+					return true
+				end
+			end
+		end
+	end
 end
